@@ -4,6 +4,7 @@ from keras import backend as K
 from keras.models import Sequential, Model
 from keras.layers import Conv2D, MaxPooling2D, Activation, Dropout, Flatten, Dense, BatchNormalization, GlobalAveragePooling2D, Reshape, LeakyReLU, Dropout, UpSampling2D, Conv2DTranspose
 from abc import ABC, abstractmethod
+import math
 
 
 class Abstract_Model(ABC):
@@ -11,6 +12,23 @@ class Abstract_Model(ABC):
     @abstractmethod
     def get_model(self, input_shape, n_classes, use_imagenet):
         pass
+    
+    
+    #util function to construct autoencoders architecture
+    #stack conv layer with batch normalization
+    def build_block(self, model, filters, conv_layer, padding = None, input_shape = None):
+        if (input_shape is not None) and (padding is not None):
+            model.add(conv_layer(filters, kernel_size=(4,4), strides=(2,2), padding=padding, input_shape=input_shape))
+            model.add(BatchNormalization(momentum=0.8))
+        elif (input_shape is not None) and (padding is None):
+            model.add(conv_layer(filters, kernel_size=(4,4), input_shape=input_shape))
+            model.add(BatchNormalization(momentum=0.8))
+        elif (padding is None):
+            model.add(conv_layer(filters, kernel_size=(4,4)))
+            model.add(BatchNormalization(momentum=0.8))
+        else:
+            model.add(conv_layer(filters, kernel_size=(4,4), strides=(2,2), padding=padding))
+            model.add(BatchNormalization(momentum=0.8))
     
     
 class Simple_Model(Abstract_Model):
@@ -23,20 +41,17 @@ class Simple_Model(Abstract_Model):
         self.model = Sequential()
 
         #block 1
-        self.model.add(Conv2D(32, (3, 3), input_shape= input_shape, name='CONV2_BLOCK1'))
-        self.model.add(BatchNormalization(axis = 3, name = 'BATCHNORM_BLOCK1'))
+        self.build_block(self.model, 32, Conv2D, padding='same', input_shape=input_shape) 
         self.model.add(Activation('relu'))
         self.model.add(MaxPooling2D(pool_size=(2, 2), name='MAXPOOL_BLOCK1'))
 
         #block 2
-        self.model.add(Conv2D(32, (3, 3), name='CONV2_BLOCK2'))
-        self.model.add(BatchNormalization(axis = 3, name = 'BATCHNORM_BLOCK2'))
+        self.build_block(self.model, 32, Conv2D, padding='same')
         self.model.add(Activation('relu'))
         self.model.add(MaxPooling2D(pool_size=(2, 2), name='MAXPOOL_BLOCK2'))
 
         #block 3
-        self.model.add(Conv2D(64, (3, 3), name='CONV2_BLOCK3'))
-        self.model.add(BatchNormalization(axis = 3, name = 'BATCHNORM_BLOCK3'))
+        self.build_block(self.model, 64, Conv2D, padding='same')
         self.model.add(Activation('relu'))
         self.model.add(MaxPooling2D(pool_size=(2, 2), name='MAXPOOL_BLOCK3'))
 
@@ -135,106 +150,62 @@ class Generator_model(Abstract_Model):
         
 class Generator_model_complex(Generator_model):
     
-    def __init__(self, filters, code_size):
+    def __init__(self, filters, code_shape):
         self.model = None
         self.filters = filters
-        self.code_size = code_size
+        self.code_shape = code_shape
     
     
-    def get_model(self, input_shape = None, n_classes = 1, use_imagenet = False):
-        generator = Sequential()
-
-        #input shape: 1x1xNOISE_LEN
-        #output shape: 4x4xfilters*32
-        generator.add(Conv2DTranspose(self.filters * 32, kernel_size=(4, 4),input_shape=(1, 1, self.code_size)))
-        generator.add(BatchNormalization())
-        generator.add(Activation(activation='relu'))
-
-        #output shape: 8x8xfilters*16
-        generator.add(Conv2DTranspose(self.filters * 16, kernel_size=(4,4), strides=(2,2), padding='same'))
-        generator.add(BatchNormalization())
-        generator.add(Activation(activation='relu'))
-
-        #output shape: 16x16xfilters*8
-        generator.add(Conv2DTranspose(self.filters * 8, kernel_size=(4,4), strides=(2,2), padding='same'))
-        generator.add(BatchNormalization())
-        generator.add(Activation(activation='relu'))
-
-        #output shape: 32x32xfilters*4
-        generator.add(Conv2DTranspose(self.filters * 4, kernel_size=(4,4), strides=(2,2), padding='same'))
-        generator.add(BatchNormalization())
-        generator.add(Activation(activation='relu'))
-
-        #output shape: 64x64xfilters*2
-        generator.add(Conv2DTranspose(self.filters * 2, kernel_size=(4,4), strides=(2,2), padding='same'))
-        generator.add(BatchNormalization())
-        generator.add(Activation(activation='relu'))
-
-        #output shape: 128x128xfilters
-        generator.add(Conv2DTranspose(self.filters, kernel_size=(4,4), strides=(2,2), padding='same'))
-        generator.add(BatchNormalization())
-        generator.add(Activation(activation='relu'))
-
-        #output shape: 256x256x3
-        generator.add(Conv2DTranspose(3, kernel_size=(4,4), strides=(2,2), padding='same'))
-        generator.add(BatchNormalization())
-        generator.add(Activation(activation='sigmoid'))
+    #input shape is the image shape you obtained.
+    # input shape works with 2**n x 2**n x 3
+    def get_model(self, input_shape, n_classes = 1, use_imagenet = False):
+        decoder = Sequential()
+        number_layers = int(math.log2(input_shape[0])) -1 
+        for i in range(number_layers):
+            if i == 0:
+                self.build_block(decoder, self.filters*(2**(number_layers-i-2)), Conv2DTranspose, input_shape=self.code_shape)
+                decoder.add(Activation(activation='relu'))
+            elif i == number_layers-1:
+                self.build_block(decoder, 3, Conv2DTranspose, padding='same')
+                decoder.add(Activation(activation='sigmoid'))
+            else:
+                self.build_block(decoder, self.filters*(2**(number_layers-i-2)), Conv2DTranspose, padding='same')
+                decoder.add(Activation(activation='relu'))
         
-        self.model = generator
+        self.model = decoder
 
         return self.model
 
+    
 
 class Discriminator_model(Abstract_Model):
     
-    def __init__(self,filters, code_size):
+    def __init__(self,filters, code_shape):
         self.model = None
         self.filters = filters
-        self.code_size = code_size
+        self.code_shape = code_shape
         
-        
+    
+    # input shape works with 2**n x 2**n x 3
     def get_model(self, input_shape, n_classes = 1, use_imagenet = False):
-        disc = Sequential()
-
-        #input shape: 256x256x3
-        #output shape: 128x128xfilters
-        disc.add(Conv2D(self.filters, kernel_size=(4,4), strides=(2,2), padding='same', input_shape=input_shape))
-        disc.add(BatchNormalization(momentum=0.8))
-        disc.add(LeakyReLU())
-
-        #output shape: 64x64xfilters*2
-        disc.add(Conv2D(self.filters*2, kernel_size=(4,4), strides=(2,2), padding='same'))
-        disc.add(BatchNormalization(momentum=0.8))
-        disc.add(LeakyReLU())
-
-        #output shape: 32x32xfilters*4
-        disc.add(Conv2D(self.filters*4, kernel_size=(4,4), strides=(2,2), padding='same'))
-        disc.add(BatchNormalization(momentum=0.8))
-        disc.add(LeakyReLU())
-
-        #output shape: 16x16xfilters*8
-        disc.add(Conv2D(self.filters*8, kernel_size=(4,4), strides=(2,2), padding='same'))
-        disc.add(BatchNormalization(momentum=0.8))
-        disc.add(LeakyReLU())
-
-        #output shape: 8x8xfilters*16
-        disc.add(Conv2D(self.filters*16, kernel_size=(4,4), strides=(2,2), padding='same'))
-        disc.add(BatchNormalization(momentum=0.8))
-        disc.add(LeakyReLU())
-
-        #output shape: 4x4xfilters*32
-        disc.add(Conv2D(self.filters*32, kernel_size=(4,4), strides=(2,2), padding='same'))
-        disc.add(BatchNormalization(momentum=0.8))
-        disc.add(LeakyReLU())
-
-        #output shape: 1x1xcode_size
-        disc.add(Conv2D(self.code_size, kernel_size=(4,4)))
-        disc.add(BatchNormalization(momentum=0.8))
-        disc.add(LeakyReLU())
+        encoder = Sequential()
+        number_layers = int(math.log2(input_shape[0])) -1
+        for i in range(number_layers):
+            if i == 0:
+                self.build_block(encoder, self.filters*(2**i), Conv2D, padding='same', input_shape=input_shape)
+                encoder.add(LeakyReLU())
+            elif i == (number_layers-1):
+                self.build_block(encoder, self.code_shape, Conv2D)
+                encoder.add(LeakyReLU())
+            else:
+                self.build_block(encoder,self.filters*(2**i), Conv2D, padding='same')
+                encoder.add(LeakyReLU())
+                
+        encoder.add(Flatten())
+        encoder.add(Dense(n_classes, activation='sigmoid', name='predictions'))
         
-        disc.add(Flatten())
-        disc.add(Dense(n_classes, activation='sigmoid', name='predictions'))
-        
-        self.model = disc
+        self.model = encoder
 
         return self.model
+    
+    
