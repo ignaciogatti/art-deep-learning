@@ -150,10 +150,11 @@ class Generator_model(Abstract_Model):
         
 class Generator_model_complex(Generator_model):
     
-    def __init__(self, filters, code_shape):
+    def __init__(self, filters, code_shape, leaky_alpha=0.2):
         self.model = None
         self.filters = filters
         self.code_shape = code_shape
+        self.leaky_alpha = leaky_alpha
     
     
     #input shape is the image shape you obtained.
@@ -164,13 +165,15 @@ class Generator_model_complex(Generator_model):
         for i in range(number_layers):
             if i == 0:
                 self.build_block(decoder, self.filters*(2**(number_layers-i-2)), Conv2DTranspose, input_shape=self.code_shape)
-                decoder.add(Activation(activation='relu'))
+                #decoder.add(Activation('relu'))
+                decoder.add(LeakyReLU(alpha=self.leaky_alpha))
             elif i == number_layers-1:
                 self.build_block(decoder, 3, Conv2DTranspose, padding='same')
-                decoder.add(Activation(activation='sigmoid'))
+                decoder.add(Activation(activation='tanh'))
             else:
                 self.build_block(decoder, self.filters*(2**(number_layers-i-2)), Conv2DTranspose, padding='same')
-                decoder.add(Activation(activation='relu'))
+                #decoder.add(Activation('relu'))
+                decoder.add(LeakyReLU(alpha=self.leaky_alpha))
         
         self.model = decoder
 
@@ -180,10 +183,12 @@ class Generator_model_complex(Generator_model):
 
 class Discriminator_model(Abstract_Model):
     
-    def __init__(self,filters, code_shape):
+    def __init__(self,filters, code_shape, include_top = True, leaky_alpha = 0.2):
         self.model = None
         self.filters = filters
         self.code_shape = code_shape
+        self.include_top = include_top
+        self.leaky_alpha = leaky_alpha
         
     
     # input shape works with 2**n x 2**n x 3
@@ -193,16 +198,17 @@ class Discriminator_model(Abstract_Model):
         for i in range(number_layers):
             if i == 0:
                 self.build_block(encoder, self.filters*(2**i), Conv2D, padding='same', input_shape=input_shape)
-                encoder.add(LeakyReLU())
+                encoder.add(LeakyReLU(alpha=self.leaky_alpha))
             elif i == (number_layers-1):
                 self.build_block(encoder, self.code_shape, Conv2D)
-                encoder.add(LeakyReLU())
+                encoder.add(LeakyReLU(alpha=self.leaky_alpha))
             else:
                 self.build_block(encoder,self.filters*(2**i), Conv2D, padding='same')
-                encoder.add(LeakyReLU())
-                
-        encoder.add(Flatten())
-        encoder.add(Dense(n_classes, activation='sigmoid', name='predictions'))
+                encoder.add(LeakyReLU(alpha=self.leaky_alpha))
+        
+        if self.include_top:
+            encoder.add(Flatten())
+            encoder.add(Dense(n_classes, activation='sigmoid', name='predictions'))
         
         self.model = encoder
 
