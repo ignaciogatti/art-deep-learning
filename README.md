@@ -12,4 +12,4 @@ This git contains a serie of Neural Network dedicated to arts task, such as styl
 
 ![Style-classification](https://github.com/ignaciogatti/art-deep-learning/blob/master/images/impressionism-classification.jpg)
 
-Style classification notebook present a model to detect impressionisms artworks. 
+Style classification notebook present a model to detect impressionisms artworks. The idea is to use a pre-trained model (in this case, ResNet and Inception got the best performance) and only do a fine-tuning
