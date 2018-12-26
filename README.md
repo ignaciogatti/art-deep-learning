@@ -16,6 +16,8 @@ Style classification notebook present a model to detect impressionisms artworks.
 
 ## Image Auotencoder
 
+![Autoencoder-example](https://github.com/ignaciogatti/art-deep-learning/blob/master/images/Autoencoder-example.jpg)
+
 Auotencoder-artwork notebook present a model to auotencode the artworks. The objective is to get a low dimensional representation that catch the main features from each one. There are two models:
 - Denoising Autoencoder
 - Sliced- Wasserstein Autoencoder
