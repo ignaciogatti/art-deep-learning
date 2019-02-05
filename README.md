@@ -11,6 +11,8 @@ The data for the algorithm was recolected using a crawler.
 The crawler take as input a url for a Wikiart query result (in this case a style result: Impressionism, Barroc, etc). Then download all the image result and the metadata associated to them. 
 The crawler was developed using Selenium and Scrapy. Selenium was used to deal with the page's dinamic content and Scrapy to crawl only the meaningful content.
 
+![Crawler-description](https://github.com/ignaciogatti/art-deep-learning/blob/master/images/crawler-description.jpg)
+
 ### Link to datasets used in the notebooks:
 
 - https://drive.google.com/file/d/1XJUX7dvY63WkouPPOtXObqPWwzbtC-k0/view?usp=sharing
