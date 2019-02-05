@@ -2,6 +2,15 @@
 
 This git contains a serie of Neural Network dedicated to arts task, such as style classification and image generation.
 
+## Dataset
+
+The data for the algorithm was recolected using a crawler.
+
+### Crawler
+
+The crawler take as input a url for a Wikiart query result (in this case a style result: Impressionism, Barroc, etc). Then download all the image result and the metadata associated to them. 
+The crawler was developed using Selenium and Scrapy. Selenium was used to deal with the page's dinamic content and Scrapy to crawl only the meaningful content.
+
 ### Link to datasets used in the notebooks:
 
 - https://drive.google.com/file/d/1XJUX7dvY63WkouPPOtXObqPWwzbtC-k0/view?usp=sharing
