@@ -35,6 +35,6 @@ Auotencoder-artwork notebook present a model to auotencode the artworks. The obj
 
 ## Artwork retrieval
 
-![Artwork-retrieval-example]((https://github.com/ignaciogatti/art-deep-learning/blob/master/images/Artwork-retrieval.jpg)
+![Artwork-retrieval-example](https://github.com/ignaciogatti/art-deep-learning/blob/master/images/Artwork-retrieval.jpg)
 
 Artwork-retrieval notebook define the logic to search similar artworks using deep-autoencoders (defined on Auotencoder-artwork notebook). Basically, first we encode each image of the dataset it using a pre-trained encoder, obtaining a code matrix. Then, given an artwork, we encode it with the same encoder. Then, we look foward the most similar codes of the matrix. Finally, we take the top ten artworks associated to these codes.
