@@ -1,6 +1,19 @@
 import h5py
 import numpy as np
 import math
+import cv2  # for image processing
+
+def get_image(path, img_Width=128, img_Height=128):
+    #load image
+    image = cv2.imread(path)
+    image = cv2.resize(image, (img_Width, img_Height), interpolation=cv2.INTER_CUBIC)
+    #normalize image
+    image_norm = image * (1./255)
+    image_norm = np.expand_dims(image_norm, axis=0)
+    
+    return image_norm
+    
+
 
 def load_dataset(path):
     train_dataset = h5py.File(path, "r")
