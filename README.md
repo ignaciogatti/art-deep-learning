@@ -33,6 +33,10 @@ Auotencoder-artwork notebook present a model to auotencode the artworks. The obj
 - Denoising Autoencoder
 - Sliced- Wasserstein Autoencoder
 
+These representations keep some implicit relationships that can be exploted in artwork retrieval task (e.g curator work). As we can see in the image below, autoencoders bind artworks not only following style, otherwise the latent features allows to find underground relationship (some of them can be meaningful for curators). In the future, the objective is to get an intuition of that latent features in order to separate the meaningful from those that produce noise.
+
+![T-sne distribution](https://github.com/ignaciogatti/art-deep-learning/blob/master/images/tsne-analysis-denoisy.jpg)
+
 ## Artwork retrieval
 
 ![Artwork-retrieval-example](https://github.com/ignaciogatti/art-deep-learning/blob/master/images/Artwork-retrieval.jpg)
