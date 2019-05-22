@@ -13,6 +13,9 @@ class Abstract_Model(ABC):
     def get_model(self, input_shape, n_classes, use_imagenet):
         pass
     
+    def preprocess_input(self, X):
+        pass
+    
     
     #util function to construct autoencoders architecture
     #stack conv layer with batch normalization
@@ -63,6 +66,12 @@ class Simple_Model(Abstract_Model):
 
         return self.model
     
+    def preprocess_input(self, X):
+        return X
+    
+    def __repr__(self):
+        return 'simpleCNNmodel'
+    
 
 class Inception_model(Abstract_Model):
     
@@ -79,6 +88,12 @@ class Inception_model(Abstract_Model):
         new_output = keras.layers.Dense(n_classes, activation='sigmoid')(new_output)
         self.model = keras.engine.training.Model(base_model.inputs, new_output)
         return self.model
+    
+    def preprocess_input(self, X):
+        return keras.applications.inception_v3.preprocess_input(X)
+    
+    def __repr__(self):
+        return 'inception_v3'
     
 
 class ResNet_model(Abstract_Model):
@@ -100,6 +115,13 @@ class ResNet_model(Abstract_Model):
         self.model = keras.engine.training.Model(base_model.inputs, prediction)
 
         return self.model
+    
+    def preprocess_input(self, X):
+        #needed to work fine
+        return keras.applications.resnet50.preprocess_input(X)
+    
+    def __repr__(self):
+        return 'resnet50'
     
     
 class Generator_model(Abstract_Model):
@@ -144,8 +166,14 @@ class Generator_model(Abstract_Model):
             
             self.model = net
 
-            return self.model
-
+            return self.model      
+    
+    def preprocess_input(self, X):
+        return X        
+    
+    def __repr__(self):
+        return 'generator_model'
+   
 
         
 class Generator_model_complex(Generator_model):
@@ -179,6 +207,9 @@ class Generator_model_complex(Generator_model):
 
         return self.model
 
+    def __repr__(self):
+        return 'generator_artDCGAN'
+    
     
 
 class Discriminator_model(Abstract_Model):
@@ -213,5 +244,9 @@ class Discriminator_model(Abstract_Model):
         self.model = encoder
 
         return self.model
+
+    def preprocess_input(self, X):
+        return X
     
-    
+    def __repr__(self):
+        return 'discriminator_artDCGAN'
