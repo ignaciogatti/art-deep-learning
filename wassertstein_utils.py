@@ -1,5 +1,6 @@
 from keras import backend as K
 from keras.layers.merge import _Merge
+import numpy as np
 
 
 def wasserstein_loss(y_true, y_pred):
@@ -46,7 +47,7 @@ def gradient_penalty_loss(y_true, y_pred, averaged_samples,
     gradients_sqr = K.square(gradients)
     #   ... summing over the rows ...
     gradients_sqr_sum = K.sum(gradients_sqr,
-                              axis=np.arange(1, len(gradients_sqr.shape)))
+                              axis=list(np.arange(1, len(gradients_sqr.shape))))
     #   ... and sqrt
     gradient_l2_norm = K.sqrt(gradients_sqr_sum)
     # compute lambda * (1 - ||grad||)^2 still for each single sample
@@ -62,6 +63,8 @@ class RandomWeightedAverage(_Merge):
     think of. Improvements appreciated."""
     
     def __init__(self, BATCH_SIZE=64):
+        super().__init__()
+        self.name = 'RandomWeightedAverageLayer'
         self.batch_size = BATCH_SIZE
 
     def _merge_function(self, inputs):
