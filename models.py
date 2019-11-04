@@ -1,8 +1,8 @@
 import tensorflow as tf
-import keras
-from keras import backend as K
-from keras.models import Sequential, Model
-from keras.layers import Conv2D, MaxPooling2D, Activation, Dropout, Flatten, Dense, BatchNormalization, GlobalAveragePooling2D, Reshape, LeakyReLU, Dropout, UpSampling2D, Conv2DTranspose
+import tensorflow.python.keras
+from tensorflow.python.keras import backend as K
+from tensorflow.python.keras.models import Sequential, Model
+from tensorflow.python.keras.layers import Conv2D, MaxPooling2D, Activation, Dropout, Flatten, Dense, BatchNormalization, GlobalAveragePooling2D, Reshape, LeakyReLU, Dropout, UpSampling2D, Conv2DTranspose
 from abc import ABC, abstractmethod
 import math
 
