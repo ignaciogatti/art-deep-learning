@@ -4,7 +4,7 @@ This git contains a serie of Neural Network dedicated to arts task, such as styl
 
 ## Dataset
 
-The data for the algorithm was recolected using a crawler.
+The data for the algorithm was recolected using a crawler. Also, you can find the full dataset in [Kaggle](https://www.kaggle.com/c/painter-by-numbers/data)
 
 ### Crawler
 
