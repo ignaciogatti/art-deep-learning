@@ -17,8 +17,8 @@
 *.csv
 *.npy
 *.h5
-*.jpg
 *.js
+/*.jpg
 
 # Jupyter notebook checkpoints #
 
